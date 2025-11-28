@@ -11,8 +11,3 @@ uvicorn
 pydantic
 python-multipart
 matplotlib
-sklearn.metrics
-sklearn.model_selection
-sklearn.preprocessing
-sklearn.model_selection
-
