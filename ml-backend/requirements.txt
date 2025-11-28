@@ -1,8 +1,18 @@
+mlflow
+seaborn
+pandas
+numpy
+scikit-learn
+imblearn
+joblib
+xgboost
 fastapi
 uvicorn
-scikit-learn
-pandas
-joblib
-numpy
-imblearn
+pydantic
+python-multipart
+matplotlib
+sklearn.metrics
+sklearn.model_selection
+sklearn.preprocessing
+sklearn.model_selection
 
