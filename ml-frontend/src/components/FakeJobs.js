@@ -47,10 +47,12 @@ function FakeJobDetector() {
     if (!text.trim()) return;
 
     try {
-      const response = await fetch("https://your-render-backend-url.onrender.com/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text })
+      const response = await fetch("https://fake-job-detect.onrender.com/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+
+
       });
 
       const data = await response.json();
@@ -88,3 +90,4 @@ function FakeJobDetector() {
 }
 
 export default FakeJobDetector;
+
