@@ -42,29 +42,37 @@ import React, { useState } from "react";
 function FakeJobDetector() {
   const [text, setText] = useState("");
   const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleCheck = async () => {
     if (!text.trim()) return;
 
+    setLoading(true);
+    setResult(null);
+
     try {
       const response = await fetch("https://fake-job-detect.onrender.com/predict", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text })
-
-
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
       });
 
       const data = await response.json();
-      setResult(data);
+
+      // Convert FAKE/REAL to user-friendly SAFE/FAKE
+      const displayResult = data.prediction === "FAKE" ? "❌ FAKE JOB" : "✅ SAFE JOB";
+      setResult(displayResult);
 
     } catch (error) {
       console.error("Error:", error);
+      setResult("⚠️ Error checking job");
     }
+
+    setLoading(false);
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
       <h2>Fake Job Detector</h2>
 
       <textarea
@@ -72,17 +80,20 @@ function FakeJobDetector() {
         placeholder="Paste job description here..."
         value={text}
         onChange={(e) => setText(e.target.value)}
-        style={{ width: "100%", padding: "10px" }}
+        style={{ width: "100%", padding: "10px", fontSize: "16px" }}
       />
 
-      <button onClick={handleCheck} style={{ marginTop: "10px" }}>
-        Check Job
+      <button
+        onClick={handleCheck}
+        style={{ marginTop: "10px", padding: "10px 20px", fontSize: "16px" }}
+        disabled={loading}
+      >
+        {loading ? "Checking..." : "Check Job"}
       </button>
 
       {result && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Result: {result.prediction}</h3>
-          <p>Fake Probability: {(result.fake_probability * 100).toFixed(2)}%</p>
+        <div style={{ marginTop: "20px", fontSize: "18px", fontWeight: "bold" }}>
+          {result}
         </div>
       )}
     </div>
@@ -90,4 +101,6 @@ function FakeJobDetector() {
 }
 
 export default FakeJobDetector;
+
+
 
