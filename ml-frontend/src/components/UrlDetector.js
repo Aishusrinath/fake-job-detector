@@ -4,14 +4,30 @@ function UrlDetector() {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState("");
 
-  const checkURL = (e) => {
-    e.preventDefault();
-    if (url.includes("phish") || url.includes("scam")) {
-      setResult("⚠️ This link looks suspicious!");
+  const checkURL = async (e) => {
+  e.preventDefault();
+
+  try {
+    const response = await fetch("https://your-backend.onrender.com/predict_url", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ url }),
+    });
+
+    const data = await response.json();
+
+    if (data.prediction === "PHISHING") {
+      setResult("⚠️ Phishing URL Detected!");
     } else {
-      setResult("✅ This link seems safe (but always be cautious).");
+      setResult("✅ This URL seems legitimate.");
     }
-  };
+  } catch (error) {
+    setResult("❌ Error connecting to server.");
+  }
+};
+
 
   return (
     <div className="detector-box text-center">
@@ -36,3 +52,4 @@ function UrlDetector() {
 }
 
 export default UrlDetector;
+
