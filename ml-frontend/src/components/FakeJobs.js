@@ -51,7 +51,7 @@ function FakeJobDetector() {
     setResult(null);
 
     try {
-      const response = await fetch("https://fake-job-detect.onrender.com/predict", {
+      const response = await fetch("https://fake-job-detect.onrender.com/predict_job", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text })
@@ -101,6 +101,7 @@ function FakeJobDetector() {
 }
 
 export default FakeJobDetector;
+
 
 
 
