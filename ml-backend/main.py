@@ -15,17 +15,28 @@ app.add_middleware(
 )
 
 # Load model + vectorizer
-model = joblib.load("fake_job_model.pkl")
-vectorizer = joblib.load("tfidf_vectorizer.pkl")
+# Fake Job Detector
+job_model = joblib.load("fake_job_model.pkl")
+job_vectorizer = joblib.load("tfidf_vectorizer.pkl")
+
+
+# URL Detector Model
+url_model = joblib.load("url_model.pkl")
+url_vectorizer = joblib.load("url_vectorizer.pkl")
+
 
 class JobRequest(BaseModel):
     text: str
 
+class URLRequest(BaseModel):
+    url: str
+
+
 @app.get("/")
 def home():
-    return {"message": "Fake Job Detector API Running"}
+    return {"message": "API Running"}
 
-@app.post("/predict")
+@app.post("/predict_job")
 def predict(data: JobRequest):
     # Transform text
     X = vectorizer.transform([data.text])
@@ -36,3 +47,15 @@ def predict(data: JobRequest):
     return {
         "prediction": "FAKE" if pred == 1 else "REAL"
     }
+    
+# URL Phishing Prediction
+# -----------------------------
+@app.post("/predict_url")
+def predict_url(data: URLRequest):
+    X = url_vectorizer.transform([data.url])
+    pred = url_model.predict(X)[0]   # 0 = phishing, 1 = legitimate
+
+    return {
+        "prediction": "PHISHING" if pred == 0 else "LEGIT"
+    }
+
