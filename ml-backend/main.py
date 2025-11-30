@@ -39,10 +39,10 @@ def home():
 @app.post("/predict_job")
 def predict(data: JobRequest):
     # Transform text
-    X = vectorizer.transform([data.text])
+    X = job_vectorizer.transform([data.text])
 
     # Predict
-    pred = model.predict(X)[0]
+    pred = job_model.predict(X)[0]
 
     return {
         "prediction": "FAKE" if pred == 1 else "REAL"
@@ -58,4 +58,5 @@ def predict_url(data: URLRequest):
     return {
         "prediction": "PHISHING" if pred == 0 else "LEGIT"
     }
+
 
