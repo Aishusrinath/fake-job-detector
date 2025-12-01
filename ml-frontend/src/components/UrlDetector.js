@@ -8,7 +8,7 @@ function UrlDetector() {
   e.preventDefault();
 
   try {
-    const response = await fetch("https://your-render-backend-url.onrender.com/predict_url", {
+    const response = await fetch("https://fake-job-detect.onrender.com/predict_url", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,6 +53,7 @@ function UrlDetector() {
 }
 
 export default UrlDetector;
+
 
 
 
