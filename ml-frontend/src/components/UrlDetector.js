@@ -24,8 +24,9 @@ function UrlDetector() {
       setResult("✅ This URL seems legitimate.");
     }
   } catch (error) {
-    setResult("❌ Error connecting to server.");
-  }
+  console.error("Fetch error:", error);
+  setResult("❌ Error connecting to server.");
+}
 };
 
 
@@ -52,5 +53,6 @@ function UrlDetector() {
 }
 
 export default UrlDetector;
+
 
 
