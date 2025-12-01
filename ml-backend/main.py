@@ -54,7 +54,7 @@ def get_domain(url: str) -> str:
         return ""
 
 def is_trusted_domain(domain: str) -> bool:
-    return domain in TRUSTED_DOMAINS
+    return any(domain.endswith(td) for td in TRUSTED_DOMAINS)
 
 
 
@@ -88,24 +88,23 @@ def predict(data: JobRequest):
 @app.post("/predict_url")
 def predict_url(data: URLRequest):
 
-    url = data.url.strip()
-    domain = get_domain(url)
+    domain = get_domain(data.url)
 
     if domain == "":
         return {"prediction": "UNKNOWN", "reason": "invalid_url"}
 
-    # RULE: trusted domains always legit
+    # RULE 1 — whitelist real Canadian bank domains
     if is_trusted_domain(domain):
-        return {"prediction": "LEGIT", "domain": domain, "reason": "trusted_domain"}
+        return {"prediction": "LEGIT", "reason": "trusted_domain"}
 
-    # ML prediction using domain-only pipeline
-    pred = pipeline.predict([domain])[0]
-    prediction = "PHISHING" if int(pred) == 0 else "LEGIT"
+    # RULE 2 — use ML model
+    pred = domain_pipeline.predict([domain])[0]
+    result = "PHISHING" if int(pred) == 0 else "LEGIT"
 
     return {
-        "prediction": prediction,
+        "prediction": result,
         "domain": domain,
-        "reason": "model",
+        "reason": "model"
     }
 
 
@@ -122,6 +121,7 @@ def predict_url(data: URLRequest):
 #     except Exception as e:
 #         print("Error:", e)
 #         return {"error": str(e)}
+
 
 
 
