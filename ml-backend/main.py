@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import joblib
 from fastapi.middleware.cors import CORSMiddleware
+from urllib.parse import urlparse
+
 
 app = FastAPI()
 
@@ -121,6 +123,7 @@ def predict_url(data: URLRequest):
 #     except Exception as e:
 #         print("Error:", e)
 #         return {"error": str(e)}
+
 
 
 
