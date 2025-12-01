@@ -49,14 +49,16 @@ def predict(data: JobRequest):
     }
     
 # URL Phishing Prediction
-# -----------------------------
 @app.post("/predict_url")
 def predict_url(data: URLRequest):
-    X = url_vectorizer.transform([data.url])
-    pred = url_model.predict(X)[0]   # 0 = phishing, 1 = legitimate
+    print("Received URL:", data.url)  # debug
+    try:
+        X = url_vectorizer.transform([data.url])
+        pred = url_model.predict(X)[0]
+        return {"prediction": "PHISHING" if pred == 0 else "LEGIT"}
+    except Exception as e:
+        print("Error:", e)
+        return {"error": str(e)}
 
-    return {
-        "prediction": "PHISHING" if pred == 0 else "LEGIT"
-    }
 
 
