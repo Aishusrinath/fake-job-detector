@@ -21,8 +21,42 @@ job_vectorizer = joblib.load("tfidf_vectorizer.pkl")
 
 
 # URL Detector Model
-url_model = joblib.load("url_model.pkl")
-url_vectorizer = joblib.load("url_vectorizer.pkl")
+pipeline = joblib.load("domain_pipeline.pkl")
+
+# url_model = joblib.load("url_model.pkl")
+# url_vectorizer = joblib.load("url_vectorizer.pkl")
+
+
+# Your trusted domains (same as notebook)
+TRUSTED_DOMAINS = {
+    "scotiabank.com",
+    "bmo.com",
+    "td.com",
+    "rbc.com",
+    "cibc.com",
+    "desire2learn.com",
+    "durhamcollege.ca",
+}
+
+# -------------------------------
+# Helper functions
+# -------------------------------
+
+def get_domain(url: str) -> str:
+    """Extract domain from URL."""
+    try:
+        parsed = urlparse(url)
+        host = parsed.netloc.lower().strip()
+        if host.startswith("www."):
+            host = host[4:]
+        return host
+    except:
+        return ""
+
+def is_trusted_domain(domain: str) -> bool:
+    return domain in TRUSTED_DOMAINS
+
+
 
 
 class JobRequest(BaseModel):
@@ -47,18 +81,48 @@ def predict(data: JobRequest):
     return {
         "prediction": "FAKE" if pred == 1 else "REAL"
     }
-    
-# URL Phishing Prediction
+
+
+# URL / Phishing Detection
+# -------------------------------
 @app.post("/predict_url")
 def predict_url(data: URLRequest):
-    print("Received URL:", data.url)  # debug
-    try:
-        X = url_vectorizer.transform([data.url])
-        pred = url_model.predict(X)[0]
-        return {"prediction": "PHISHING" if pred == 0 else "LEGIT"}
-    except Exception as e:
-        print("Error:", e)
-        return {"error": str(e)}
+
+    url = data.url.strip()
+    domain = get_domain(url)
+
+    if domain == "":
+        return {"prediction": "UNKNOWN", "reason": "invalid_url"}
+
+    # RULE: trusted domains always legit
+    if is_trusted_domain(domain):
+        return {"prediction": "LEGIT", "domain": domain, "reason": "trusted_domain"}
+
+    # ML prediction using domain-only pipeline
+    pred = pipeline.predict([domain])[0]
+    prediction = "PHISHING" if int(pred) == 0 else "LEGIT"
+
+    return {
+        "prediction": prediction,
+        "domain": domain,
+        "reason": "model",
+    }
+
+
+
+    
+# URL Phishing Prediction
+# @app.post("/predict_url")
+# def predict_url(data: URLRequest):
+#     print("Received URL:", data.url)  # debug
+#     try:
+#         X = url_vectorizer.transform([data.url])
+#         pred = url_model.predict(X)[0]
+#         return {"prediction": "PHISHING" if pred == 0 else "LEGIT"}
+#     except Exception as e:
+#         print("Error:", e)
+#         return {"error": str(e)}
+
 
 
 
