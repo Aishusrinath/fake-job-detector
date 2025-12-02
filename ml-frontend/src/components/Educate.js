@@ -7,16 +7,13 @@ function Educate() {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch(
-          `https://newsapi.org/v2/everything?q=phishing+Canada&language=en&pageSize=5&apiKey=66a21a149d374c229abc8dfec6dd54a3`
-        );
-
+        const response = await fetch("https://fake-job-detect.onrender.com/news");
         const data = await response.json();
 
-        if (data.status === "ok") {
+        if (data.articles) {
           setNews(data.articles);
         } else {
-          console.error("Error fetching news:", data.message);
+          console.error("No articles found");
           setNews([]);
         }
       } catch (error) {
