@@ -92,7 +92,7 @@ def predict(item: URLRequest):
     feature_df = pd.get_dummies(feature_df, columns=['tld'], drop_first=True)
     
     # Align columns with training data
-    for col in model.feature_names_in_:
+    for col in url_model.feature_names_in_:
         if col not in feature_df.columns:
             feature_df[col] = 0
     feature_df = feature_df[url_model.feature_names_in_]
@@ -114,6 +114,7 @@ def predict(item: URLRequest):
 #     except Exception as e:
 #         print("Error:", e)
 #         return {"error": str(e)}
+
 
 
 
