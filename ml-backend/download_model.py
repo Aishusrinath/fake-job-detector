@@ -1,7 +1,7 @@
 import requests
  
 # direct download link
-url = "https://drive.google.com/uc?export=download&id=YOUR_FILE_ID"
+url = "https://drive.google.com/file/d/15Vqn8-rAIIQhEdxYUcgwx1jC6znrmXx_/view?usp=sharing"
  
 output = "email_image_model.pt"
  
