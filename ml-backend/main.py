@@ -7,9 +7,39 @@ import pandas as pd
 import tldextract
 import re
 import requests
+import os
+import torch
+rom torchvision import transforms
+from PIL import Image
+from fastapi import UploadFile, File
+from io import BytesIO
 
 
 app = FastAPI()
+
+
+@app.on_event("startup")
+def load_pt_image_model():
+    download_pt_model()
+    global image_model
+
+    image_model = torch.load(PT_MODEL_PATH, map_location="cpu")
+    image_model.eval()
+
+    # Define your preprocessing transform
+    global preprocess
+    preprocess = transforms.Compose([
+        transforms.Resize((224, 224)),   # adjust for your model
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],   # change if your training used different values
+            std=[0.229, 0.224, 0.225]
+        )
+    ])
+
+    print("Image classifier loaded.")
+
+
 
 NEWS_API_KEY = "66a21a149d374c229abc8dfec6dd54a3"
 
@@ -33,6 +63,28 @@ url_model = joblib.load("phishing_model.pkl")
 
 # url_model = joblib.load("url_model.pkl")
 # url_vectorizer = joblib.load("url_vectorizer.pkl")
+
+# ----------------------------
+# Google Drive Download
+# ----------------------------
+PT_MODEL_URL = "https://drive.google.com/file/d/15Vqn8-rAIIQhEdxYUcgwx1jC6znrmXx_/view?usp=sharing"
+PT_MODEL_PATH = "email_model.pt"   # rename as needed
+
+def download_pt_model():
+    if not os.path.exists(PT_MODEL_PATH):
+        print("Downloading image classifier model (.pt)...")
+        resp = requests.get(PT_MODEL_URL)
+        with open(PT_MODEL_PATH, "wb") as f:
+            f.write(resp.content)
+        print("Model download complete.")
+    else:
+        print(".pt model already exists locally.")
+
+
+
+
+
+
 
 
 # Feature extraction function
@@ -113,6 +165,25 @@ def predict(item: URLRequest):
     prediction = url_model.predict(feature_df)[0]
     return {"url": item.url, "prediction": "Phishing 🚨" if prediction == 1 else "Legitimate ✅"}
 
+
+@app.post("/predict_image")
+async def predict_image(file: UploadFile = File(...)):
+    # Read image bytes
+    contents = await file.read()
+    image = Image.open(BytesIO(contents)).convert("RGB")
+
+    # Preprocess
+    tensor = preprocess(image).unsqueeze(0)
+
+    # Inference
+    with torch.no_grad():
+        output = image_model(tensor)
+        predicted_class = torch.argmax(output, dim=1).item()
+
+    return {
+        "filename": file.filename,
+        "prediction": int(predicted_class)
+    }
 
 
 
