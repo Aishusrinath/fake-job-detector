@@ -9,6 +9,11 @@ pydantic
 python-multipart
 xgboost
 tldextract
+pillow
+torch
+torchvision
+requests
+
 
 
 
