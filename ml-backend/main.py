@@ -87,7 +87,7 @@ def predict(data: JobRequest):
 # URL / Phishing Detection
 # -------------------------------
 @app.post("/predict")
-def predict(item: URLItem):
+def predict(item: URLRequest):
     feature_df = pd.DataFrame([extract_features(item.url)])
     feature_df = pd.get_dummies(feature_df, columns=['tld'], drop_first=True)
     
@@ -95,9 +95,9 @@ def predict(item: URLItem):
     for col in model.feature_names_in_:
         if col not in feature_df.columns:
             feature_df[col] = 0
-    feature_df = feature_df[model.feature_names_in_]
+    feature_df = feature_df[url_model.feature_names_in_]
     
-    prediction = model.predict(feature_df)[0]
+    prediction = url_model.predict(feature_df)[0]
     return {"url": item.url, "prediction": "Phishing 🚨" if prediction == 1 else "Legitimate ✅"}
 
 
@@ -114,6 +114,7 @@ def predict(item: URLItem):
 #     except Exception as e:
 #         print("Error:", e)
 #         return {"error": str(e)}
+
 
 
 
