@@ -6,9 +6,12 @@ from urllib.parse import urlparse
 import pandas as pd
 import tldextract
 import re
+import requests
 
 
 app = FastAPI()
+
+NEWS_API_KEY = "66a21a149d374c229abc8dfec6dd54a3"
 
 # Enable CORS so frontend can call this API
 app.add_middleware(
@@ -71,6 +74,16 @@ class URLRequest(BaseModel):
 def home():
     return {"message": "API Running"}
 
+@app.get("/news")
+def get_news():
+    url = f"https://newsapi.org/v2/everything?q=phishing+Canada&language=en&pageSize=5&apiKey={NEWS_API_KEY}"
+    resp = requests.get(url)
+    data = resp.json()
+    if data.get("status") == "ok":
+        return {"articles": data.get("articles", [])}
+    else:
+        return {"articles": []}
+
 @app.post("/predict_job")
 def predict(data: JobRequest):
     # Transform text
@@ -102,18 +115,7 @@ def predict(item: URLRequest):
 
 
 
-    
-# URL Phishing Prediction
-# @app.post("/predict_url")
-# def predict_url(data: URLRequest):
-#     print("Received URL:", data.url)  # debug
-#     try:
-#         X = url_vectorizer.transform([data.url])
-#         pred = url_model.predict(X)[0]
-#         return {"prediction": "PHISHING" if pred == 0 else "LEGIT"}
-#     except Exception as e:
-#         print("Error:", e)
-#         return {"error": str(e)}
+
 
 
 
