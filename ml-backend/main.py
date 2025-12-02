@@ -9,7 +9,7 @@ import re
 import requests
 import os
 import torch
-rom torchvision import transforms
+from torchvision import transforms
 from PIL import Image
 from fastapi import UploadFile, File
 from io import BytesIO
@@ -184,6 +184,7 @@ async def predict_image(file: UploadFile = File(...)):
         "filename": file.filename,
         "prediction": int(predicted_class)
     }
+
 
 
 
