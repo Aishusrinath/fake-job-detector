@@ -33,10 +33,10 @@ CLASS_NAMES = ["scam", "legit"]   # order from training
 # Download .pt model
 def download_model():
     """Downloads .pt file from GitHub Releases if not present."""
-    if not os.path.exists(MODEL_PATH):
+    if not os.path.exists(PT_MODEL_PATH):
         print("Downloading model...")
-        r = requests.get(MODEL_URL, stream=True)
-        with open(MODEL_PATH, "wb") as f:
+        r = requests.get(PT_MODEL_URL, stream=True)
+        with open(PT_MODEL_PATH, "wb") as f:
             f.write(r.content)
         print("Model downloaded.")
     else:
@@ -68,7 +68,7 @@ def load_image_model():
         nn.Linear(in_features, len(CLASS_NAMES))
     )
 
-    state = torch.load(MODEL_PATH, map_location=DEVICE)
+    state = torch.load(PT_MODEL_PATH, map_location=DEVICE)
     model.load_state_dict(state, strict=True)
 
     model.eval()
@@ -117,7 +117,10 @@ def run_prediction(img: Image.Image):
 @app.post("/predict-image")
 async def predict(file: UploadFile = File(...)):
     content = await file.read()
-    img = Image.open(io.BytesIO(content))
+    try:
+        img = Image.open(io.BytesIO(content))
+    except Exception as e:
+        return {"error": "Invalid image file", "details": str(e)}
 
     label, confidence, distribution = run_prediction(img)
 
@@ -207,6 +210,7 @@ def predict_url(item: URLRequest):
         "url": item.url,
         "prediction": "Phishing 🚨" if prediction == 1 else "Legitimate ✅",
     }
+
 
 
 
