@@ -1,19 +1,50 @@
+# FastAPI + server
+fastapi==0.123.5
+uvicorn==0.38.0
+python-multipart==0.0.20
 
-fastapi
-uvicorn[standard]
+# PyTorch CPU versions
+torch==2.7.1+cpu
+torchvision==0.22.1+cpu
+torchaudio==2.7.0+cpu
+
+# Image handling
+pillow==12.0.0
+
+# Data + ML
 scikit-learn==1.6.1
-pandas
-joblib
-numpy
-imblearn
-pydantic
-python-multipart
-xgboost
-tldextract
-pillow
-requests
-torch==2.5.1 --extra-index-url https://download.pytorch.org/whl/cpu
-torchvision==0.20.1 --extra-index-url https://download.pytorch.org/whl/cpu
+numpy==2.3.5
+pandas==2.3.3
+joblib==1.5.2
+xgboost==3.1.2
+imbalanced-learn==0.14.0
+
+# URL processing
+tldextract==5.3.0
+requests==2.32.5
+
+# Optional / backend helpers
+certifi==2025.11.12
+charset-normalizer==3.4.4
+idna==3.11
+urllib3==2.5.0
+
+#fastapi
+#uvicorn[standard]
+#scikit-learn==1.6.1
+#pandas
+#joblib
+#numpy
+#imblearn
+#pydantic
+#python-multipart
+#xgboost
+#tldextract
+#pillow
+#requests
+#torch==2.5.1 --extra-index-url https://download.pytorch.org/whl/cpu
+#torchvision==0.20.1 --extra-index-url https://download.pytorch.org/whl/cpu
+
 
 
 
