@@ -18,6 +18,17 @@ from io import BytesIO
 
 app = FastAPI()
 
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 # ----------------------------
 # Paths + URLs
 # ----------------------------
@@ -210,6 +221,7 @@ def predict_url(item: URLRequest):
         "url": item.url,
         "prediction": "Phishing 🚨" if prediction == 1 else "Legitimate ✅",
     }
+
 
 
 
