@@ -9,7 +9,7 @@ import re
 import requests
 import os
 import torch
-from torchvision import transforms
+
 from PIL import Image
 from fastapi import UploadFile, File
 from io import BytesIO
@@ -29,15 +29,21 @@ def startup_event():
     image_model = torch.load(PT_MODEL_PATH, map_location="cpu", weights_only=False)
     image_model.eval()
 
-    # Preprocessing transform
-    preprocess = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225]
-        )
-    ])
+    def preprocess(image: Image.Image):
+    # Resize
+    image = image.resize((224, 224))
+
+    # Convert to tensor (C x H x W)
+    tensor = torch.tensor(
+        [ [ [pixel/255.0 for pixel in channel] for channel in image.split() ] ]
+    ).float()
+
+    # Normalize
+    mean = torch.tensor([0.485, 0.456, 0.406]).view(3,1,1)
+    std = torch.tensor([0.229, 0.224, 0.225]).view(3,1,1)
+    tensor = (tensor - mean) / std
+
+    return tensor
 
 
 
@@ -200,6 +206,7 @@ def predict(item: URLRequest):
     
         return {"filename": file.filename, "prediction": int(pred_class)}
     
+
 
 
 
