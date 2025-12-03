@@ -9,6 +9,7 @@ import re
 import requests
 import os
 import torch
+import torchvision.models as models
 import torchvision.transforms as transforms
 import torch.nn as nn
 
@@ -179,4 +180,5 @@ def predict_url(item: URLRequest):
         "url": item.url,
         "prediction": "Phishing 🚨" if prediction == 1 else "Legitimate ✅",
     }
+
 
