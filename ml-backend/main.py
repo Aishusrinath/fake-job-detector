@@ -30,20 +30,20 @@ def startup_event():
     image_model.eval()
 
     def preprocess(image: Image.Image):
-    # Resize
-    image = image.resize((224, 224))
-
-    # Convert to tensor (C x H x W)
-    tensor = torch.tensor(
-        [ [ [pixel/255.0 for pixel in channel] for channel in image.split() ] ]
-    ).float()
-
-    # Normalize
-    mean = torch.tensor([0.485, 0.456, 0.406]).view(3,1,1)
-    std = torch.tensor([0.229, 0.224, 0.225]).view(3,1,1)
-    tensor = (tensor - mean) / std
-
-    return tensor
+        # Resize
+        image = image.resize((224, 224))
+    
+        # Convert to tensor (C x H x W)
+        tensor = torch.tensor(
+            [ [ [pixel/255.0 for pixel in channel] for channel in image.split() ] ]
+        ).float()
+    
+        # Normalize
+        mean = torch.tensor([0.485, 0.456, 0.406]).view(3,1,1)
+        std = torch.tensor([0.229, 0.224, 0.225]).view(3,1,1)
+        tensor = (tensor - mean) / std
+    
+        return tensor
 
 
 
@@ -206,6 +206,7 @@ def predict(item: URLRequest):
     
         return {"filename": file.filename, "prediction": int(pred_class)}
     
+
 
 
 
