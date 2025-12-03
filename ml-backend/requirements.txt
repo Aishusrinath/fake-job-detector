@@ -12,8 +12,8 @@ tldextract
 pillow
 requests
 torch==2.7.0+cpu
-torchvision==0.20.1+cpu
 --extra-index-url https://download.pytorch.org/whl/cpu
+
 
 
 
