@@ -67,8 +67,8 @@ url_model = joblib.load("phishing_model.pkl")
 # ----------------------------
 # Google Drive Download
 # ----------------------------
-PT_MODEL_URL = "https://drive.google.com/file/d/15Vqn8-rAIIQhEdxYUcgwx1jC6znrmXx_/view?usp=sharing"
-PT_MODEL_PATH = "email_model.pt"   # rename as needed
+PT_MODEL_URL = "https://drive.google.com/uc?export=download&id=1cxFEyqANSxMIWo0XdOd35NhxWVLECG_5"
+PT_MODEL_PATH = "email_resnet18_best.pt"   # rename as needed
 
 def download_pt_model():
     if not os.path.exists(PT_MODEL_PATH):
@@ -184,6 +184,7 @@ async def predict_image(file: UploadFile = File(...)):
         "filename": file.filename,
         "prediction": int(predicted_class)
     }
+
 
 
 
