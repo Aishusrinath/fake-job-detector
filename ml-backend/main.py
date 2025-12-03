@@ -19,25 +19,27 @@ app = FastAPI()
 
 
 @app.on_event("startup")
-def load_pt_image_model():
-    download_pt_model()
-    global image_model
+def startup_event():
+    global image_model, preprocess, job_model, job_vectorizer, url_model
 
-    image_model = torch.load(PT_MODEL_PATH, map_location="cpu",weights_only=False)
+    # Download PT file
+    download_pt_model()
+
+    # Load torch model on CPU only (Render free tier)
+    image_model = torch.load(PT_MODEL_PATH, map_location="cpu", weights_only=False)
     image_model.eval()
 
-    # Define your preprocessing transform
-    global preprocess
+    # Preprocessing transform
     preprocess = transforms.Compose([
-        transforms.Resize((224, 224)),   # adjust for your model
+        transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize(
-            mean=[0.485, 0.456, 0.406],   # change if your training used different values
+            mean=[0.485, 0.456, 0.406],
             std=[0.229, 0.224, 0.225]
         )
     ])
 
-    print("Image classifier loaded.")
+
 
 
 
@@ -166,24 +168,38 @@ def predict(item: URLRequest):
     return {"url": item.url, "prediction": "Phishing 🚨" if prediction == 1 else "Legitimate ✅"}
 
 
-@app.post("/predict_image")
-async def predict_image(file: UploadFile = File(...)):
-    # Read image bytes
-    contents = await file.read()
-    image = Image.open(BytesIO(contents)).convert("RGB")
+# @app.post("/predict_image")
+# async def predict_image(file: UploadFile = File(...)):
+#     # Read image bytes
+#     contents = await file.read()
+#     image = Image.open(BytesIO(contents)).convert("RGB")
 
-    # Preprocess
-    tensor = preprocess(image).unsqueeze(0)
+#     # Preprocess
+#     tensor = preprocess(image).unsqueeze(0)
 
-    # Inference
-    with torch.no_grad():
-        output = image_model(tensor)
-        predicted_class = torch.argmax(output, dim=1).item()
+#     # Inference
+#     with torch.no_grad():
+#         output = image_model(tensor)
+#         predicted_class = torch.argmax(output, dim=1).item()
 
-    return {
-        "filename": file.filename,
-        "prediction": int(predicted_class)
-    }
+#     return {
+#         "filename": file.filename,
+#         "prediction": int(predicted_class)
+#     }
+
+    @app.post("/predict_image")
+    async def predict_image(file: UploadFile = File(...)):
+        contents = await file.read()
+        image = Image.open(BytesIO(contents)).convert("RGB")
+    
+        tensor = preprocess(image).unsqueeze(0)
+    
+        with torch.no_grad():
+            output = image_model(tensor)
+            pred_class = torch.argmax(output, dim=1).item()
+    
+        return {"filename": file.filename, "prediction": int(pred_class)}
+    
 
 
 
