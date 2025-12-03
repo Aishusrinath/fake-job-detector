@@ -23,7 +23,7 @@ def load_pt_image_model():
     download_pt_model()
     global image_model
 
-    image_model = torch.load(PT_MODEL_PATH, map_location="cpu")
+    image_model = torch.load(PT_MODEL_PATH, map_location="cpu",weights_only=False)
     image_model.eval()
 
     # Define your preprocessing transform
@@ -184,6 +184,7 @@ async def predict_image(file: UploadFile = File(...)):
         "filename": file.filename,
         "prediction": int(predicted_class)
     }
+
 
 
 
