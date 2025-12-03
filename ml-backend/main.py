@@ -9,7 +9,7 @@ import re
 import requests
 import os
 import torch
-import torchvision.models as models
+import torchvision.transforms as transforms
 import torch.nn as nn
 
 from PIL import Image
@@ -60,18 +60,17 @@ def load_image_model():
 # ----------------------------
 # Preprocess Image
 # ----------------------------
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    )
+])
+
 def preprocess(image: Image.Image):
-    image = image.resize((224, 224))
-
-    tensor = torch.tensor(
-        [[[pixel / 255.0 for pixel in channel] for channel in image.split()]]
-    ).float()
-
-    mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
-    std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
-
-    tensor = (tensor - mean) / std
-    return tensor
+    return transform(image)
 
 
 # ----------------------------
@@ -180,3 +179,4 @@ def predict_url(item: URLRequest):
         "url": item.url,
         "prediction": "Phishing 🚨" if prediction == 1 else "Legitimate ✅",
     }
+
