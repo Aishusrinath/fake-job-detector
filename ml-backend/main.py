@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
+import io
 import joblib
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import urlparse
@@ -9,10 +10,8 @@ import re
 import requests
 import os
 import torch
-import torchvision.models as models
-import torchvision.transforms as transforms
+from torchvision import models, transforms
 import torch.nn as nn
-
 from PIL import Image
 from io import BytesIO
 
@@ -28,50 +27,59 @@ PT_MODEL_PATH = "email_resnet18_best.pt"
 NEWS_API_KEY = "66a21a149d374c229abc8dfec6dd54a3"
 
 
+DEVICE = torch.device("cpu")
+CLASS_NAMES = ["scam", "legit"]   # order from training
 # ----------------------------
 # Download .pt model
-# ----------------------------
-def download_pt_model():
-    if not os.path.exists(PT_MODEL_PATH):
-        print("Downloading image classifier model (.pt)...")
-        resp = requests.get(PT_MODEL_URL)
-        with open(PT_MODEL_PATH, "wb") as f:
-            f.write(resp.content)
-        print("Model download complete.")
+def download_model():
+    """Downloads .pt file from GitHub Releases if not present."""
+    if not os.path.exists(MODEL_PATH):
+        print("Downloading model...")
+        r = requests.get(MODEL_URL, stream=True)
+        with open(MODEL_PATH, "wb") as f:
+            f.write(r.content)
+        print("Model downloaded.")
     else:
-        print(".pt model already exists locally.")
+        print("Model already exists.")
 
+# IMAGE TRANSFORMS
+# ================================
+eval_tfms = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485,0.456,0.406],
+                         std=[0.229,0.224,0.225]),
+])
 
 # ----------------------------
 # Load PyTorch Image Model
 # ----------------------------
 def load_image_model():
-    model = models.resnet18(weights=None)
+    try:
+        model = models.resnet18(weights=None)
+    except:
+        model = models.resnet18(pretrained=False)
 
-    num_features = model.fc.in_features
-    model.fc = nn.Linear(num_features, 2)  # CHANGE if you have different classes
+    in_features = model.fc.in_features
 
-    state_dict = torch.load(PT_MODEL_PATH, map_location="cpu")
-    model.load_state_dict(state_dict)
+    # MUST MATCH TRAINING EXACTLY:
+    model.fc = nn.Sequential(
+        nn.Dropout(0.2),
+        nn.Linear(in_features, len(CLASS_NAMES))
+    )
+
+    state = torch.load(MODEL_PATH, map_location=DEVICE)
+    model.load_state_dict(state, strict=True)
 
     model.eval()
+    model.to(DEVICE)
+
+    print("✔ Model loaded correctly.")
     return model
 
 
-# ----------------------------
-# Preprocess Image
-# ----------------------------
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225]
-    )
-])
+image_model = None
 
-def preprocess(image: Image.Image):
-    return transform(image)
 
 
 # ----------------------------
@@ -81,29 +89,43 @@ def preprocess(image: Image.Image):
 def startup_event():
     global image_model, job_model, job_vectorizer, url_model
 
-    download_pt_model()
+    download_model()
     image_model = load_image_model()
 
     job_model = joblib.load("fake_job_model.pkl")
     job_vectorizer = joblib.load("tfidf_vectorizer.pkl")
     url_model = joblib.load("phishing_model.pkl")
 
+# ================================
+# PREDICT FUNCTION
+# ================================
+def run_prediction(img: Image.Image):
+    img = img.convert("RGB")
+    x = eval_tfms(img).unsqueeze(0).to(DEVICE)
 
+    with torch.no_grad():
+        logits = image_model(x)
+        probs = torch.softmax(logits, dim=1).cpu().numpy().ravel()
+
+    idx = probs.argmax()
+    return CLASS_NAMES[idx], float(probs[idx]), {
+        c: float(p) for c, p in zip(CLASS_NAMES, probs)
+    }
 # ----------------------------
 # IMAGE PREDICTION ENDPOINT
 # ----------------------------
-@app.post("/predict_image")
-async def predict_image(file: UploadFile = File(...)):
-    contents = await file.read()
-    image = Image.open(BytesIO(contents)).convert("RGB")
+@app.post("/predict-image")
+async def predict(file: UploadFile = File(...)):
+    content = await file.read()
+    img = Image.open(io.BytesIO(content))
 
-    tensor = preprocess(image).unsqueeze(0)
+    label, confidence, distribution = run_prediction(img)
 
-    with torch.no_grad():
-        output = image_model(tensor)
-        pred_class = torch.argmax(output, dim=1).item()
-
-    return {"filename": file.filename, "prediction": int(pred_class)}
+    return {
+        "label": label,
+        "confidence": confidence,
+        "probabilities": distribution
+    }
 
 
 # ----------------------------
@@ -163,6 +185,11 @@ def extract_features(url):
     return features
 
 
+
+
+
+
+
 @app.post("/predict_url")
 def predict_url(item: URLRequest):
     feature_df = pd.DataFrame([extract_features(item.url)])
@@ -180,5 +207,6 @@ def predict_url(item: URLRequest):
         "url": item.url,
         "prediction": "Phishing 🚨" if prediction == 1 else "Legitimate ✅",
     }
+
 
 
