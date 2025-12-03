@@ -12,8 +12,9 @@ xgboost
 tldextract
 pillow
 requests
-torch==2.2.0 --extra-index-url https://download.pytorch.org/whl/cpu
-torchvision==0.17.0 --extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1 --extra-index-url https://download.pytorch.org/whl/cpu
+torchvision==0.20.1 --extra-index-url https://download.pytorch.org/whl/cpu
+
 
 
 
