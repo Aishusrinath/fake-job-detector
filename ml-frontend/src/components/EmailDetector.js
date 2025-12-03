@@ -18,7 +18,7 @@ function EmailDetector() {
     setLoading(true);
 
     try {
-      const res = await fetch("https:///predict-image", {
+      const res = await fetch("https://fake-job-detect.onrender.com/predict-image", {
         method: "POST",
         body: formData
       });
@@ -67,3 +67,4 @@ function EmailDetector() {
 }
 
 export default EmailDetector;
+
