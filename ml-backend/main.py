@@ -429,17 +429,26 @@ def extract_features(url):
 def predict_url(req: URLRequest):
     model = get_url_model()
 
+    # Extract features
     df = pd.DataFrame([extract_features(req.url)])
-    df = pd.get_dummies(df, columns=["tld"], drop_first=True)
+    df = pd.get_dummies(df, columns=["tld"], drop_first=False)
 
+    # Ensure all missing columns exist:
     for col in model.feature_names_in_:
         if col not in df.columns:
             df[col] = 0
 
+    # Ensure no extra columns
     df = df[model.feature_names_in_]
-    pred = model.predict(df)[0]
+
+    # Predict
+    try:
+        pred = model.predict(df)[0]
+    except Exception as e:
+        return {"error": "Model prediction failed", "details": str(e)}
 
     return {
         "url": req.url,
         "prediction": "Phishing 🚨" if pred == 1 else "Legitimate ✅"
     }
+
