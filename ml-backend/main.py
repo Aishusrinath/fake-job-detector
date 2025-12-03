@@ -67,7 +67,7 @@ url_model = joblib.load("phishing_model.pkl")
 # ----------------------------
 # Google Drive Download
 # ----------------------------
-PT_MODEL_URL = "https://drive.google.com/uc?export=download&id=1cxFEyqANSxMIWo0XdOd35NhxWVLECG_5"
+PT_MODEL_URL = "https://github.com/Aishusrinath/fake-job-detector/releases/download/v1.0/email_resnet18_best.pt"
 PT_MODEL_PATH = "email_resnet18_best.pt"   # rename as needed
 
 def download_pt_model():
@@ -184,6 +184,7 @@ async def predict_image(file: UploadFile = File(...)):
         "filename": file.filename,
         "prediction": int(predicted_class)
     }
+
 
 
 
