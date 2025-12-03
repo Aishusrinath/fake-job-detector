@@ -12,8 +12,9 @@ xgboost
 tldextract
 pillow
 requests
-torch==2.7.0+cpu
+torch==2.7.1+cpu
 torchvision==0.22.1+cpu
+
 
 
 
