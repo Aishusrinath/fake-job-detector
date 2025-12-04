@@ -26,6 +26,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"], 
 )
 
 # --------------------------------
@@ -222,5 +223,6 @@ def predict_url(req: URLRequest):
         "url": req.url,
         "prediction": "Phishing 🚨" if pred == 1 else "Legitimate ✅"
     }
+
 
 
