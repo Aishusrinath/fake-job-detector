@@ -197,42 +197,72 @@ def extract_features(url):
     }
 
 
+# @app.post("/predict_url")
+# def predict_url(req: URLRequest):
+#     model = get_url_model()
+
+#     # Load the exact training columns
+#     columns = joblib.load("columns.pkl")
+
+#     # Extract URL features
+#     features = extract_features(req.url)
+#     df = pd.DataFrame([features])
+
+#     # Create TLD dummies exactly like training
+#     df = pd.get_dummies(df, columns=["tld"], drop_first=True)
+
+#     # Add missing columns
+#     for col in columns:
+#         if col not in df.columns:
+#             df[col] = 0
+
+#     # Make sure only the training columns are used & in correct order
+#     df = df[columns]
+
+#     # Prediction
+#     pred = model.predict(df)[0]
+#     prob = model.predict_proba(df)[0]
+
+#     return {
+#         "url": req.url,
+#         "label": "phishing" if pred == 1 else "legitimate",
+#         "confidence": float(prob[pred]),
+#         "probabilities": {
+#             "legitimate": float(prob[0]),
+#             "phishing": float(prob[1])
+#         }
+#     }
+
+
 @app.post("/predict_url")
 def predict_url(req: URLRequest):
     model = get_url_model()
 
-    # Load the exact training columns
-    columns = joblib.load("columns.pkl")
+    # Extract features
+    df = pd.DataFrame([extract_features(req.url)])
+    df = pd.get_dummies(df, columns=["tld"], drop_first=False)
 
-    # Extract URL features
-    features = extract_features(req.url)
-    df = pd.DataFrame([features])
-
-    # Create TLD dummies exactly like training
-    df = pd.get_dummies(df, columns=["tld"], drop_first=True)
-
-    # Add missing columns
-    for col in columns:
+    # Ensure all missing columns that the model expects exist
+    for col in model.feature_names_in_:
         if col not in df.columns:
             df[col] = 0
 
-    # Make sure only the training columns are used & in correct order
-    df = df[columns]
+    # Remove any extra columns the model does NOT expect
+    df = df[model.feature_names_in_]
 
-    # Prediction
-    pred = model.predict(df)[0]
-    prob = model.predict_proba(df)[0]
+    # Predict
+    try:
+        pred = model.predict(df)[0]
+    except Exception as e:
+        return {
+            "error": "Model prediction failed",
+            "details": str(e)
+        }
 
     return {
         "url": req.url,
-        "label": "phishing" if pred == 1 else "legitimate",
-        "confidence": float(prob[pred]),
-        "probabilities": {
-            "legitimate": float(prob[0]),
-            "phishing": float(prob[1])
-        }
+        "prediction": "Phishing 🚨" if pred == 1 else "Legitimate ✅"
     }
-
 
 
 
