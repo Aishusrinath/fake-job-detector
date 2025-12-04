@@ -201,28 +201,39 @@ def extract_features(url):
 def predict_url(req: URLRequest):
     model = get_url_model()
 
-    # Extract features
-    df = pd.DataFrame([extract_features(req.url)])
-    df = pd.get_dummies(df, columns=["tld"], drop_first=False)
+    # Load the exact training columns
+    columns = joblib.load("columns.pkl")
 
-    # Ensure all missing columns exist:
-    for col in model.feature_names_in_:
+    # Extract URL features
+    features = extract_features(req.url)
+    df = pd.DataFrame([features])
+
+    # Create TLD dummies exactly like training
+    df = pd.get_dummies(df, columns=["tld"], drop_first=True)
+
+    # Add missing columns
+    for col in columns:
         if col not in df.columns:
             df[col] = 0
 
-    # Ensure no extra columns
-    df = df[model.feature_names_in_]
+    # Make sure only the training columns are used & in correct order
+    df = df[columns]
 
-    # Predict
-    try:
-        pred = model.predict(df)[0]
-    except Exception as e:
-        return {"error": "Model prediction failed", "details": str(e)}
+    # Prediction
+    pred = model.predict(df)[0]
+    prob = model.predict_proba(df)[0]
 
     return {
         "url": req.url,
-        "prediction": "Phishing 🚨" if pred == 1 else "Legitimate ✅"
+        "label": "phishing" if pred == 1 else "legitimate",
+        "confidence": float(prob[pred]),
+        "probabilities": {
+            "legitimate": float(prob[0]),
+            "phishing": float(prob[1])
+        }
     }
+
+
 
 
 
